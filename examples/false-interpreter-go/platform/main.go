@@ -7,6 +7,7 @@ package main
 import "C"
 
 import (
+	"bufio"
 	"fmt"
 	"io"
 	"os"
@@ -83,22 +84,17 @@ func roc_fx_getFileBytes(output *C.struct_RocStr, filePtr unsafe.Pointer) {
 	buf := make([]byte, 0x10) // This is intentionally small to ensure correct implementation
 	count, err := file.Read(buf)
 	if err != nil && err != io.EOF {
-		panic(fmt.Sprintf("can not read from file: %w", err))
+		panic(fmt.Sprintf("can not read from file: %v", err))
 	}
 	str := rocStrFromStr(string(buf[:count]))
 	*output = str
 }
 
 //export roc_fx_getChar
-func roc_fx_getChar(output *C.struct_RocStr, filePtr unsafe.Pointer) {
-	file := (*os.File)(filePtr)
-	buf := make([]byte, 1) // This is intentionally small to ensure correct implementation
-	count, err := file.Read(buf)
-	if err != nil && err != io.EOF {
-		panic(fmt.Sprintf("can not read from file: %w", err))
-	}
-	str := rocStrFromStr(string(buf[:count]))
-	*output = str
+func roc_fx_getChar() C.char {
+	reader := bufio.NewReader(os.Stdin)
+	text, _ := reader.ReadString('\n')
+	return C.char(text[0])
 }
 
 //export roc_fx_putLine
